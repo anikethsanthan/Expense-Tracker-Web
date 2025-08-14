@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Header from "../components/Header/Header";
+import AddExpensePage from "./AddExpensePage";
 import useGetQuery from "../hooks/getQuery.hook";
 import { apiUrls } from "../apis/index";
 
@@ -8,6 +9,7 @@ const HomePage = () => {
   const [transactions, setTransactions] = useState([]);
   const [pagination, setPagination] = useState({});
   const [currentMonthStats, setCurrentMonthStats] = useState({});
+  const [showAddExpense, setShowAddExpense] = useState(false);
 
   const fetchTransactions = useCallback(async (page = 1) => {
     await getQuery({
@@ -53,18 +55,8 @@ const HomePage = () => {
     });
   };
 
-  const getCategoryIcon = (category) => {
-    const icons = {
-      food: "🍽️",
-      travel: "✈️",
-      entertainment: "🎬",
-      shopping: "🛒",
-      healthcare: "🏥",
-      education: "📚",
-      utilities: "💡",
-      other: "📝",
-    };
-    return icons[category] || "📝";
+  const getCategoryIcon = () => {
+    return "";
   };
 
   const getCategoryColor = (category) => {
@@ -80,6 +72,21 @@ const HomePage = () => {
     };
     return colors[category] || "bg-gray-100 text-gray-800";
   };
+
+  const handleAddExpenseSuccess = () => {
+    // Refresh transactions after adding expense
+    fetchTransactions(1);
+    setShowAddExpense(false);
+  };
+
+  if (showAddExpense) {
+    return (
+      <AddExpensePage
+        onBack={() => setShowAddExpense(false)}
+        onSuccess={handleAddExpenseSuccess}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-white">
@@ -364,10 +371,7 @@ const HomePage = () => {
       {/* Floating Add Button */}
       <div className="fixed bottom-8 right-8">
         <button
-          onClick={() => {
-            // TODO: Navigate to add expense page or open modal
-            console.log("Add expense clicked");
-          }}
+          onClick={() => setShowAddExpense(true)}
           className="bg-gradient-to-r from-blue-500 to-sky-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
         >
           <svg
