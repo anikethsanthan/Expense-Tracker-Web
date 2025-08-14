@@ -1,0 +1,58 @@
+/* Custom Toast Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.5s ease-out forwards;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+
+/* Ensure Toast notifications are always visible */
+.toast-container {
+  z-index: 9999 !important;
+}
+
+/* Quicksand font loading for better performance */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+/* Ensure Ant Design notifications are visible (legacy support) */
+.ant-notification {
+  z-index: 9999 !important;
+}
+
+.ant-notification-notice {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.ant-notification-notice-message {
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+.ant-notification-notice-description {
+  font-family: 'Quicksand', sans-serif !important;
+  font-weight: 500 !important;
+}
