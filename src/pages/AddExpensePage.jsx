@@ -63,7 +63,7 @@ const AddExpensePage = ({ onBack, onSuccess }) => {
       amount: parseFloat(formData.amount),
       currency: formData.currency,
       category: formData.category,
-      description: formData.description.trim() || undefined,
+      description: formData.description.trim() || "",
     };
 
     await postQuery({
