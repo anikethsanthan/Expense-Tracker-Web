@@ -6,7 +6,7 @@ export const apiUrls = {
     login: "/expense-tracker/user/login",
   },
   expenses: {
-    getexpenses: "/expense-tracker/transaction/store-transaction",
-    addexpenses: "/expense-tracker/transaction/get-transaction",
+    getexpenses: "/expense-tracker/transaction/get-transaction",
+    addexpenses: "/expense-tracker/transaction/store-transaction",
   },
 };

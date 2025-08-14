@@ -1,276 +1,388 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Header from "../components/Header/Header";
-import ProductCard from "../components/Cards/ProductCard";
-import Footer from "../components/Footer/Footer";
 import useGetQuery from "../hooks/getQuery.hook";
-
-import { useSelector } from "react-redux";
-import { apiUrls } from "../apis";
+import { apiUrls } from "../apis/index";
 
 const HomePage = () => {
   const { getQuery, loading } = useGetQuery();
-  const [products, setProducts] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [pagination, setPagination] = useState({});
+  const [currentMonthStats, setCurrentMonthStats] = useState({});
 
-  const userData = useSelector((state) => state.user);
-  console.log("User Data redux:", userData);
-
-  useEffect(() => {
-    getQuery({
-      url: apiUrls?.products.getAllProducts,
+  const fetchTransactions = useCallback(async (page = 1) => {
+    await getQuery({
+      url: `${apiUrls.expenses.getexpenses}?page=${page}&limit=10`,
       onSuccess: (response) => {
-        setProducts(response.products || []);
+        if (response) {
+          setTransactions(response.data.transactions);
+          setPagination(response.data.pagination);
+          setCurrentMonthStats({
+            totalTransactions: response.data.currentMonthTransactions,
+            totalExpense: response.data.currentMonthTotalExpenseINR,
+          });
+        }
+      },
+      onFail: (error) => {
+        console.error("Failed to fetch transactions:", error);
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  console.log("Products Data:", products);
+  useEffect(() => {
+    fetchTransactions(1);
+  }, [fetchTransactions]);
+
+  const handlePageChange = (page) => {
+    fetchTransactions(page);
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      food: "🍽️",
+      travel: "✈️",
+      entertainment: "🎬",
+      shopping: "🛒",
+      healthcare: "🏥",
+      education: "📚",
+      utilities: "💡",
+      other: "📝",
+    };
+    return icons[category] || "📝";
+  };
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      food: "bg-orange-100 text-orange-800",
+      travel: "bg-blue-100 text-blue-800",
+      entertainment: "bg-purple-100 text-purple-800",
+      shopping: "bg-pink-100 text-pink-800",
+      healthcare: "bg-red-100 text-red-800",
+      education: "bg-green-100 text-green-800",
+      utilities: "bg-yellow-100 text-yellow-800",
+      other: "bg-gray-100 text-gray-800",
+    };
+    return colors[category] || "bg-gray-100 text-gray-800";
+  };
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-25"
-      style={{
-        background: "linear-gradient(135deg, #fefbf8 0%, #fce7f3 100%)",
-      }}
-    >
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-white">
       <Header />
 
-      {/* Hero Section - Bunny Bloom Theme */}
-      <section className="relative h-96 md:h-[550px] overflow-hidden mx-4 md:mx-6 lg:mx-8 mt-6 mb-16 rounded-3xl shadow-2xl group">
-        <div className="absolute inset-0 bg-gradient-to-r from-pink-100/40 to-transparent z-10"></div>
-        <img
-          src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-          alt="Elegant beauty products with soft florals and natural botanicals"
-          className="w-full h-full object-cover rounded-3xl transform group-hover:scale-105 transition-transform duration-700"
-        />
-        <div className="absolute inset-0 flex items-center justify-center z-20">
-          <div className="text-center text-gray-800 px-6">
-            <h1
-              className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-sm"
-              style={{
-                fontFamily: "Quicksand",
-                fontWeight: 700,
-                color: "#ffffff",
-                textShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
-              }}
-            >
-              Bunny Bloom
-            </h1>
-            <p
-              className="text-xl md:text-2xl mb-6 drop-shadow-sm opacity-95"
-              style={{
-                fontFamily: "Quicksand",
-                fontWeight: 500,
-                color: "#f8fafc",
-                textShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-              }}
-            >
-              Where gentle meets gorgeous - bloom into your best self
-            </p>
-            <button className="bg-white/95 backdrop-blur-sm text-rose-800 px-8 py-3 rounded-full font-semibold hover:bg-pink-50 hover:text-rose-900 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border-2 border-pink-200/50">
-              Start Your Beauty Journey
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section - Bunny Bloom Values */}
-      <section className="mx-4 md:mx-6 lg:mx-8 mb-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-pink-100">
-            <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl">🌸</span>
-            </div>
-            <h3
-              className="text-xl font-semibold mb-2"
-              style={{
-                fontFamily: "Quicksand",
-                fontWeight: 600,
-                color: "#a3906a",
-              }}
-            >
-              Pure & Natural
-            </h3>
-            <p
-              className="text-gray-600"
-              style={{ fontFamily: "Quicksand", fontWeight: 400 }}
-            >
-              Gentle formulations inspired by nature, as pure as bunny fur
-            </p>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-pink-100">
-            <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl">🐰</span>
-            </div>
-            <h3
-              className="text-xl font-semibold mb-2"
-              style={{
-                fontFamily: "Quicksand",
-                fontWeight: 600,
-                color: "#a3906a",
-              }}
-            >
-              Bunny Approved
-            </h3>
-            <p
-              className="text-gray-600"
-              style={{ fontFamily: "Quicksand", fontWeight: 400 }}
-            >
-              Never tested on animals, always cruelty-free and ethical
-            </p>
-          </div>
-          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-pink-100">
-            <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl">💝</span>
-            </div>
-            <h3
-              className="text-xl font-semibold mb-2"
-              style={{
-                fontFamily: "Quicksand",
-                fontWeight: 600,
-                color: "#a3906a",
-              }}
-            >
-              Soft Care
-            </h3>
-            <p
-              className="text-gray-600"
-              style={{ fontFamily: "Quicksand", fontWeight: 400 }}
-            >
-              Tender care for your skin, as gentle as a bunny's touch
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <main className="container mx-auto px-4 md:px-6 lg:px-8 pb-16">
-        {/* Section Header - Bunny Bloom Style */}
-        <div className="text-center mb-12">
-          <h2
-            className="text-4xl md:text-5xl font-bold mb-4"
-            style={{
-              fontFamily: "Quicksand",
-              fontWeight: 700,
-              color: "#a3906a",
-            }}
+      <div className="container mx-auto px-4 py-8">
+        {/* Welcome Section */}
+        <div className="text-center mb-8">
+          <h1
+            className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-sky-600 bg-clip-text text-transparent mb-2"
+            style={{ fontFamily: "Quicksand", fontWeight: 700 }}
           >
-            🌸 Pure Beauty Collection
-          </h2>
+            Welcome to Your Dashboard
+          </h1>
           <p
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
-            style={{ fontFamily: "Quicksand", fontWeight: 400 }}
+            className="text-gray-600 text-lg"
+            style={{ fontFamily: "Quicksand", fontWeight: 500 }}
           >
-            Discover gentle skincare products that bloom with your natural
-            beauty
+            Track and manage your expenses efficiently
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-pink-300 to-rose-400 mx-auto mt-6 rounded-full"></div>
         </div>
 
-        {/* Products section */}
-        {loading ? (
-          /* Loading skeleton */
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-            {[...Array(8)].map((_, index) => (
-              <div
-                key={index}
-                className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md w-full h-[520px] border border-pink-100 animate-pulse"
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p
+                  className="text-sm text-gray-600 mb-1"
+                  style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                >
+                  This Month's Expenses
+                </p>
+                <p
+                  className="text-2xl font-bold text-blue-600"
+                  style={{ fontFamily: "Quicksand", fontWeight: 700 }}
+                >
+                  {formatCurrency(currentMonthStats.totalExpense || 0)}
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-sky-600 rounded-full">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                >
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p
+                  className="text-sm text-gray-600 mb-1"
+                  style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                >
+                  Total Transactions
+                </p>
+                <p
+                  className="text-2xl font-bold text-blue-600"
+                  style={{ fontFamily: "Quicksand", fontWeight: 700 }}
+                >
+                  {currentMonthStats.totalTransactions || 0}
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10,9 9,9 8,9" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p
+                  className="text-sm text-gray-600 mb-1"
+                  style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                >
+                  Average per Transaction
+                </p>
+                <p
+                  className="text-2xl font-bold text-blue-600"
+                  style={{ fontFamily: "Quicksand", fontWeight: 700 }}
+                >
+                  {formatCurrency(
+                    currentMonthStats.totalTransactions > 0
+                      ? currentMonthStats.totalExpense /
+                          currentMonthStats.totalTransactions
+                      : 0
+                  )}
+                </p>
+              </div>
+              <div className="p-3 bg-gradient-to-r from-cyan-500 to-sky-600 rounded-full">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                >
+                  <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Transactions Section */}
+        <div className="bg-white rounded-2xl shadow-lg border border-blue-100">
+          <div className="p-6 border-b border-blue-100">
+            <h2
+              className="text-2xl font-bold text-gray-800"
+              style={{ fontFamily: "Quicksand", fontWeight: 700 }}
+            >
+              Recent Transactions
+            </h2>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📊</div>
+              <h3
+                className="text-xl font-semibold text-gray-600 mb-2"
+                style={{ fontFamily: "Quicksand", fontWeight: 600 }}
               >
-                <div className="w-full h-64 bg-pink-100 rounded-t-xl"></div>
-                <div className="p-5">
-                  <div className="h-6 bg-pink-100 rounded mb-2"></div>
-                  <div className="h-4 bg-pink-50 rounded mb-3"></div>
-                  <div className="h-4 bg-pink-50 rounded mb-3 w-3/4"></div>
-                  <div className="h-6 bg-pink-100 rounded mb-4 w-1/2"></div>
-                  <div className="h-12 bg-pink-200 rounded"></div>
+                No transactions found
+              </h3>
+              <p
+                className="text-gray-500"
+                style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+              >
+                Start tracking your expenses by adding your first transaction!
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="divide-y divide-blue-50">
+                {transactions.map((transaction) => (
+                  <div
+                    key={transaction._id}
+                    className="p-6 hover:bg-blue-50/50 transition-colors duration-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0">
+                          <span className="text-2xl">
+                            {getCategoryIcon(transaction.category)}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <p
+                              className="text-lg font-semibold text-gray-900 truncate"
+                              style={{
+                                fontFamily: "Quicksand",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {transaction.description}
+                            </p>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
+                                transaction.category
+                              )}`}
+                              style={{
+                                fontFamily: "Quicksand",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {transaction.category}
+                            </span>
+                          </div>
+                          <p
+                            className="text-sm text-gray-500"
+                            style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                          >
+                            {formatDate(transaction.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <p
+                          className="text-lg font-bold text-red-600"
+                          style={{ fontFamily: "Quicksand", fontWeight: 700 }}
+                        >
+                          -{formatCurrency(transaction.INRconvertedAmount)}
+                        </p>
+                        {transaction.currency !== "INR" && (
+                          <p
+                            className="text-sm text-gray-500"
+                            style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                          >
+                            {transaction.amount} {transaction.currency}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-blue-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <p
+                        className="text-sm text-gray-700"
+                        style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                      >
+                        Page {pagination.currentPage} of {pagination.totalPages}
+                      </p>
+                      <span
+                        className="text-sm text-gray-500"
+                        style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                      >
+                        ({pagination.totalTransactions} total transactions)
+                      </span>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() =>
+                          handlePageChange(pagination.currentPage - 1)
+                        }
+                        disabled={!pagination.hasPrevPage}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                          pagination.hasPrevPage
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }`}
+                        style={{ fontFamily: "Quicksand", fontWeight: 600 }}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() =>
+                          handlePageChange(pagination.currentPage + 1)
+                        }
+                        disabled={!pagination.hasNextPage}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                          pagination.hasNextPage
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }`}
+                        style={{ fontFamily: "Quicksand", fontWeight: 600 }}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : products.length > 0 ? (
-          /* Products grid */
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-            {products.map((product, index) => (
-              <div
-                key={product._id}
-                className="transform transition-all duration-300"
-                style={{
-                  animationDelay: `${index * 100}ms`,
-                  animation: "fadeInUp 0.6s ease-out forwards",
-                }}
-              >
-                <ProductCard
-                  product={product}
-                  image={product.image}
-                  title={product.name}
-                  useCase={product.description}
-                  rating={product.rating || 4.5}
-                  price={product.productDetails[0].price}
-                  stock={product.productDetails[0].stock}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* No products message */
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">🌸</div>
-            <h3
-              className="text-2xl font-semibold mb-2"
-              style={{
-                fontFamily: "Quicksand",
-                fontWeight: 600,
-                color: "#a3906a",
-              }}
-            >
-              No Products Available
-            </h3>
-            <p
-              className="text-gray-600"
-              style={{ fontFamily: "Quicksand", fontWeight: 400 }}
-            >
-              We're currently updating our beautiful collection. Please check
-              back soon!
-            </p>
-          </div>
-        )}
+              )}
+            </>
+          )}
+        </div>
+      </div>
 
-        {/* Newsletter Section - Bunny Bloom Style */}
-        <section className="mt-20 bg-gradient-to-r from-pink-50 to-rose-50 rounded-3xl p-8 md:p-12 text-center border border-pink-100">
-          <div className="mb-4">
-            <span className="text-4xl">🐰💌</span>
-          </div>
-          <h3
-            className="text-3xl font-bold mb-4"
-            style={{
-              fontFamily: "Quicksand",
-              fontWeight: 700,
-              color: "#a3906a",
-            }}
+      {/* Floating Add Button */}
+      <div className="fixed bottom-8 right-8">
+        <button
+          onClick={() => {
+            // TODO: Navigate to add expense page or open modal
+            console.log("Add expense clicked");
+          }}
+          className="bg-gradient-to-r from-blue-500 to-sky-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
           >
-            Join Our Bunny Family
-          </h3>
-          <p
-            className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
-            style={{ fontFamily: "Quicksand", fontWeight: 400 }}
-          >
-            Get gentle beauty tips, exclusive bunny-approved products, and pure
-            skincare secrets delivered to your inbox
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-6 py-3 rounded-full border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white/80"
-              style={{ fontFamily: "Quicksand", fontWeight: 400 }}
-            />
-            <button className="bg-rose-400 text-white px-8 py-3 rounded-full font-semibold hover:bg-rose-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-              Join Us
-            </button>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 };

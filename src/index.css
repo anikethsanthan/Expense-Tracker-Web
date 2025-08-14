@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* Quicksand Font Family */
 @font-face {
   font-family: 'Quicksand';
@@ -292,5 +294,3 @@ button, a, input, .card {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
 }
-
-@import "tailwindcss";

@@ -1,3 +1,6 @@
+/* Quicksand font loading for better performance */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+
 /* Custom Toast Animations */
 @keyframes slideInRight {
   from {
@@ -33,9 +36,6 @@
 .toast-container {
   z-index: 9999 !important;
 }
-
-/* Quicksand font loading for better performance */
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
 
 /* Ensure Ant Design notifications are visible (legacy support) */
 .ant-notification {
