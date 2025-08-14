@@ -25,26 +25,21 @@ const Header = () => {
               Expense Tracker
             </h1>
           </div>
-          <nav className="flex items-center space-x-4">
-            <button
-              className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
-              style={{ fontFamily: "Quicksand", fontWeight: 500 }}
-            >
-              Dashboard
+          <div className="flex items-center">
+            <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
             </button>
-            <button
-              className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
-              style={{ fontFamily: "Quicksand", fontWeight: 500 }}
-            >
-              Add Expense
-            </button>
-            <button
-              className="bg-gradient-to-r from-blue-500 to-sky-600 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200"
-              style={{ fontFamily: "Quicksand", fontWeight: 600 }}
-            >
-              Profile
-            </button>
-          </nav>
+          </div>
         </div>
       </div>
     </header>
