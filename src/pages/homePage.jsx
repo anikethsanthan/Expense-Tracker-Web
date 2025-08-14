@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Header from "../components/Header/Header";
 import AddExpensePage from "./AddExpensePage";
 import useGetQuery from "../hooks/getQuery.hook";
@@ -10,33 +10,69 @@ const HomePage = () => {
   const [pagination, setPagination] = useState({});
   const [currentMonthStats, setCurrentMonthStats] = useState({});
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
-  const fetchTransactions = useCallback(async (page = 1) => {
-    await getQuery({
-      url: `${apiUrls.expenses.getexpenses}?page=${page}&limit=10`,
-      onSuccess: (response) => {
-        if (response) {
-          setTransactions(response.data.transactions);
-          setPagination(response.data.pagination);
-          setCurrentMonthStats({
-            totalTransactions: response.data.currentMonthTransactions,
-            totalExpense: response.data.currentMonthTotalExpenseINR,
-          });
-        }
-      },
-      onFail: (error) => {
-        console.error("Failed to fetch transactions:", error);
-      },
-    });
-  }, []);
+  const fetchTransactions = useCallback(
+    async (page = 1, category = "all") => {
+      const categoryParam = category !== "all" ? `&category=${category}` : "";
+      await getQuery({
+        url: `${apiUrls.expenses.getexpenses}?page=${page}&limit=10${categoryParam}`,
+        onSuccess: (response) => {
+          if (response) {
+            setTransactions(response.data.transactions);
+            setPagination(response.data.pagination);
+            setCurrentMonthStats({
+              totalTransactions: response.data.currentMonthTransactions,
+              totalExpense: response.data.currentMonthTotalExpenseINR,
+            });
+          }
+        },
+        onFail: (error) => {
+          console.error("Failed to fetch transactions:", error);
+        },
+      });
+    },
+    [selectedCategory]
+  );
 
   useEffect(() => {
-    fetchTransactions(1);
-  }, [fetchTransactions]);
+    fetchTransactions(1, selectedCategory);
+  }, [fetchTransactions, selectedCategory]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowCategoryDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handlePageChange = (page) => {
-    fetchTransactions(page);
+    fetchTransactions(page, selectedCategory);
   };
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    setShowCategoryDropdown(false);
+    fetchTransactions(1, category);
+  };
+
+  const categories = [
+    { value: "", label: "All Categories" },
+    { value: "food", label: "Food" },
+    { value: "travel", label: "Travel" },
+
+    { value: "utilities", label: "Utilities" },
+    { value: "others", label: "Others" },
+  ];
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {
@@ -75,7 +111,7 @@ const HomePage = () => {
 
   const handleAddExpenseSuccess = () => {
     // Refresh transactions after adding expense
-    fetchTransactions(1);
+    fetchTransactions(1, selectedCategory);
     setShowAddExpense(false);
   };
 
@@ -217,12 +253,75 @@ const HomePage = () => {
         {/* Transactions Section */}
         <div className="bg-white rounded-2xl shadow-lg border border-blue-100">
           <div className="p-6 border-b border-blue-100">
-            <h2
-              className="text-2xl font-bold text-gray-800"
-              style={{ fontFamily: "Quicksand", fontWeight: 700 }}
-            >
-              Recent Transactions
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2
+                className="text-2xl font-bold text-gray-800"
+                style={{ fontFamily: "Quicksand", fontWeight: 700 }}
+              >
+                Recent Transactions
+              </h2>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors duration-200"
+                  style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className="text-blue-600"
+                  >
+                    <path d="M3 6h18l-2 9H5L3 6zM3 6l-.5-2H1" />
+                    <circle cx="9" cy="19" r="1" />
+                    <circle cx="20" cy="19" r="1" />
+                  </svg>
+                  <span className="text-blue-700">
+                    {
+                      categories.find((cat) => cat.value === selectedCategory)
+                        ?.label
+                    }
+                  </span>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    className={`text-blue-600 transition-transform duration-200 ${
+                      showCategoryDropdown ? "rotate-180" : ""
+                    }`}
+                  >
+                    <polyline points="6,9 12,15 18,9" />
+                  </svg>
+                </button>
+
+                {showCategoryDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                    <div className="py-2">
+                      {categories.map((category) => (
+                        <button
+                          key={category.value}
+                          onClick={() => handleCategoryChange(category.value)}
+                          className={`w-full text-left px-4 py-2 hover:bg-blue-50 transition-colors duration-200 ${
+                            selectedCategory === category.value
+                              ? "bg-blue-50 text-blue-700 font-medium"
+                              : "text-gray-700"
+                          }`}
+                          style={{ fontFamily: "Quicksand", fontWeight: 500 }}
+                        >
+                          {category.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {loading ? (
@@ -269,7 +368,9 @@ const HomePage = () => {
                                 fontWeight: 600,
                               }}
                             >
-                              {transaction.description}
+                              {transaction.description
+                                ? transaction.description
+                                : "No description"}
                             </p>
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
