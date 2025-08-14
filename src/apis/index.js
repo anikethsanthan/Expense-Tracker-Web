@@ -1,5 +1,5 @@
-// export const apiBaseUrl = "http://localhost:7777";
-export const apiBaseUrl = "https://currency-translator-backend.vercel.app";
+export const apiBaseUrl = "http://localhost:7777";
+// export const apiBaseUrl = "https://currency-translator-backend.vercel.app";
 
 export const apiUrls = {
   auth: {

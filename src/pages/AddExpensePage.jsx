@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Header from "../components/Header/Header";
 import usePostQuery from "../hooks/postQuery.hook";
 import { apiUrls } from "../apis/index";
+import Toast from "../components/Toast/Toast";
 
 const AddExpensePage = ({ onBack, onSuccess }) => {
   const { postQuery, loading } = usePostQuery();
@@ -18,7 +19,7 @@ const AddExpensePage = ({ onBack, onSuccess }) => {
     { value: "food", label: "Food" },
     { value: "travel", label: "Travel" },
     { value: "utilities", label: "Utilities" },
-    { value: "other", label: "Other" },
+    { value: "others", label: "Other" },
   ];
 
   const currencies = [{ value: "USD", label: "USD ($)" }];
@@ -68,7 +69,7 @@ const AddExpensePage = ({ onBack, onSuccess }) => {
 
     await postQuery({
       url: apiUrls.expenses.addexpenses,
-      data: transactionData,
+      postData: transactionData,
       onSuccess: (response) => {
         console.log("Transaction added successfully:", response);
         // Reset form
@@ -84,15 +85,22 @@ const AddExpensePage = ({ onBack, onSuccess }) => {
           onSuccess();
         }
 
-        // Show success message or navigate back
-        alert("Expense added successfully!");
+        // Show success message using Toast
+        Toast({
+          type: "success",
+          content: "Expense added successfully!",
+        });
+
         if (onBack) {
           onBack();
         }
       },
       onFail: (error) => {
         console.error("Failed to add transaction:", error);
-        alert("Failed to add expense. Please try again.");
+        Toast({
+          type: "error",
+          content: "Failed to add expense. Please try again.",
+        });
       },
     });
   };

@@ -68,7 +68,7 @@ const HomePage = () => {
       healthcare: "bg-red-100 text-red-800",
       education: "bg-green-100 text-green-800",
       utilities: "bg-yellow-100 text-yellow-800",
-      other: "bg-gray-100 text-gray-800",
+      others: "bg-gray-100 text-gray-800",
     };
     return colors[category] || "bg-gray-100 text-gray-800";
   };
